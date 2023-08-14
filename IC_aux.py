@@ -16,7 +16,6 @@ def sample_function(fun, X):
     y = []
 
     for i, point in enumerate(X):
-        print('step %s / %s'%(i, len(X)))
         y.append(fun(2 * np.pi * point))
 
 
