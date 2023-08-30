@@ -14,9 +14,6 @@ if __name__ == '__main__':
     models = [3, 4, 5]
     seed_num = 10
 
-    for seed in range(900):
-    s = seed
-
     model_num = seed // (len(nqubits_list) * len(nlayers_list) * seed_num)
     seed = seed % (len(nqubits_list) * len(nlayers_list) * seed_num)
     model = models[model_num]

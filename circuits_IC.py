@@ -22,17 +22,14 @@ class test_circuit:
     def energy(self, parameters):
         self.PQC.set_parameters(parameters)
 
-        state = self.PQC.execute().state()
-        e = self.ham.expectation(state)
-        return e
+        return self.ham.expectation(self.PQC.execute().state())
     
 
     def function(self, parameters, x):
         hyp_fun = np.zeros(len(x))
         for i, data in enumerate(x):
             self.mapper_QML(parameters, data)
-            state = self.QML.execute().state()
-            hyp_fun[i] = self.ham.expectation(state)
+            hyp_fun[i] = self.ham.expectation(self.QML.execute().state())
 
         return hyp_fun
 
@@ -205,10 +202,7 @@ class permutation_simple(test_circuit):
     def energy(self, parameters):
         self.mapper_QML(parameters, 0)
 
-        state = self.PQC.execute().state()
-        e = self.ham.expectation(state)
-
-        return e
+        return self.ham.expectation(self.PQC.execute().state())
   
 
     def create_QML(self):
@@ -217,11 +211,14 @@ class permutation_simple(test_circuit):
         for l in range(self.nlayers):
             for q in range(self.nqubits):
                 self.QML.add(gates.RX(q, theta = 0))
-            for q in range(self.nqubits):
-                for q_ in range(q):
-                    self.QML.add(gates.CNOT(q, q_))
-                    self.QML.add(gates.RZ(q_, theta = 0))
-                    self.QML.add(gates.CNOT(q, q_))
+            for q in range(0, self.nqubits, 2):
+                self.QML.add(gates.CNOT(q, (q + 1) % (self.nqubits)))
+                self.QML.add(gates.RZ((q + 1) % (self.nqubits), theta = 0))
+                self.QML.add(gates.CNOT(q, (q + 1) % (self.nqubits)))
+            for q in range(1, self.nqubits, 2):
+                self.QML.add(gates.CNOT(q, (q + 1) % (self.nqubits)))
+                self.QML.add(gates.RZ((q + 1) % (self.nqubits), theta = 0))
+                self.QML.add(gates.CNOT(q, (q + 1) % (self.nqubits)))
 
 
     def mapper_QML(self, parameters, data):
@@ -256,75 +253,14 @@ class permutation_double(test_circuit):
         for l in range(self.nlayers):
             for q in range(self.nqubits):
                 self.PQC.add(gates.RX(q, theta = 0))
-            for q in range(self.nqubits):
-                for q_ in range(q):
-                    self.PQC.add(gates.CNOT(q, q_))
-                    self.PQC.add(gates.RZ(q_, theta = 0))
-                    self.PQC.add(gates.CNOT(q, q_))
-
-    def create_QML(self):
-        super().create_QML()
-
-        for l in range(self.nlayers):
-            for q in range(self.nqubits):
-                self.QML.add(gates.RX(q, theta = 0))
-            for q in range(self.nqubits):
-                self.QML.add(gates.RX(q, theta = 0))
-            for q in range(self.nqubits):
-                for q_ in range(q):
-                    self.QML.add(gates.CNOT(q, q_))
-                    self.QML.add(gates.RZ(q_, theta = 0))
-                    self.QML.add(gates.CNOT(q, q_))
-
-
-
-    def mapper_QML(self, parameters, data):
-        assert len(parameters) == 2 * self.nlayers
-        
-
-        pqc_parameters = np.zeros(len(self.PQC.get_parameters()))
-        qml_parameters = np.zeros(len(self.QML.get_parameters()))
-
-
-        index_pqc = 0
-        index_qml = 0
-        for i, p in enumerate(parameters):
-            if i % 2 == 0:
-                qml_parameters[index_qml : index_qml + self.nqubits] = [data] * self.nqubits 
-                index_qml += self.nqubits
-
-            pqc_parameters[index_pqc : index_pqc + self.nqubits] = [p] * self.nqubits 
-            index_pqc += self.nqubits
-            qml_parameters[index_qml : index_qml + self.nqubits] = [p] * self.nqubits 
-            index_qml += self.nqubits
-        
-        self.PQC.set_parameters(pqc_parameters)
-        self.QML.set_parameters(qml_parameters)
-        return pqc_parameters, qml_parameters
-
-    def energy(self, parameters):
-        self.mapper_QML(parameters, 0)
-        state = self.PQC.execute().state()
-        e = self.ham.expectation(state)
-
-        return e
-
-
-class permutation_composed(test_circuit):
-    def __init__(self, nqubits, nlayers):
-        super().__init__(nqubits, nlayers)
-    def create_PQC(self):
-        super().create_PQC()
-
-        for l in range(self.nlayers):
-            for q in range(self.nqubits):
-                self.PQC.add(gates.RX(q, theta = 0))
-            for q in range(self.nqubits):
-                for q_ in range(q):
-                    self.PQC.add(gates.CNOT(q, q_))
-                    self.PQC.add(gates.RX(q_, theta = 0))
-                    self.PQC.add(gates.CNOT(q, q_))
-
+            for q in range(0, self.nqubits, 2):
+                self.PQC.add(gates.CNOT(q, (q + 1) % (self.nqubits)))
+                self.PQC.add(gates.RZ((q + 1) % (self.nqubits), theta = 0))
+                self.PQC.add(gates.CNOT(q, (q + 1) % (self.nqubits)))
+            for q in range(1, self.nqubits, 2):
+                self.PQC.add(gates.CNOT(q, (q + 1) % (self.nqubits)))
+                self.PQC.add(gates.RZ((q + 1) % (self.nqubits), theta = 0))
+                self.PQC.add(gates.CNOT(q, (q + 1) % (self.nqubits)))
         
 
     def create_QML(self):
@@ -332,15 +268,17 @@ class permutation_composed(test_circuit):
 
         for l in range(self.nlayers):
             for q in range(self.nqubits):
-                self.QML.add(gates.RY(q, theta = 0))
-            for q in range(self.nqubits):
                 self.QML.add(gates.RX(q, theta = 0))
             for q in range(self.nqubits):
-                for q_ in range(q):
-                    self.QML.add(gates.CNOT(q, q_))
-                    self.QML.add(gates.RZ(q_, theta = 0))
-                    self.QML.add(gates.CNOT(q, q_))
-
+                self.QML.add(gates.RX(q, theta = 0))
+            for q in range(0, self.nqubits, 2):
+                self.QML.add(gates.CNOT(q, (q + 1) % (self.nqubits)))
+                self.QML.add(gates.RZ((q + 1) % (self.nqubits), theta = 0))
+                self.QML.add(gates.CNOT(q, (q + 1) % (self.nqubits)))
+            for q in range(1, self.nqubits, 2):
+                self.QML.add(gates.CNOT(q, (q + 1) % (self.nqubits)))
+                self.QML.add(gates.RZ((q + 1) % (self.nqubits), theta = 0))
+                self.QML.add(gates.CNOT(q, (q + 1) % (self.nqubits)))
 
 
     def mapper_QML(self, parameters, data):
@@ -369,7 +307,72 @@ class permutation_composed(test_circuit):
     
     def energy(self, parameters):
         self.mapper_QML(parameters, 0)
-        state = self.PQC.execute().state()
-        e = self.ham.expectation(state)
 
-        return e
+        return self.ham.expectation(self.PQC.execute().state())
+
+
+class permutation_composed(test_circuit):
+    def __init__(self, nqubits, nlayers):
+        super().__init__(nqubits, nlayers)
+    def create_PQC(self):
+        super().create_PQC()
+
+        for l in range(self.nlayers):
+            for q in range(self.nqubits):
+                self.PQC.add(gates.RX(q, theta = 0))
+            for q in range(0, self.nqubits, 2):
+                self.PQC.add(gates.CNOT(q, (q + 1) % (self.nqubits)))
+                self.PQC.add(gates.RZ((q + 1) % (self.nqubits), theta = 0))
+                self.PQC.add(gates.CNOT(q, (q + 1) % (self.nqubits)))
+            for q in range(1, self.nqubits, 2):
+                self.PQC.add(gates.CNOT(q, (q + 1) % (self.nqubits)))
+                self.PQC.add(gates.RZ((q + 1) % (self.nqubits), theta = 0))
+                self.PQC.add(gates.CNOT(q, (q + 1) % (self.nqubits)))
+        
+
+    def create_QML(self):
+        super().create_QML()
+
+        for l in range(self.nlayers):
+            for q in range(self.nqubits):
+                self.QML.add(gates.RY(q, theta = 0))
+            for q in range(self.nqubits):
+                self.QML.add(gates.RX(q, theta = 0))
+            for q in range(0, self.nqubits, 2):
+                self.QML.add(gates.CNOT(q, (q + 1) % (self.nqubits)))
+                self.QML.add(gates.RZ((q + 1) % (self.nqubits), theta = 0))
+                self.QML.add(gates.CNOT(q, (q + 1) % (self.nqubits)))
+            for q in range(1, self.nqubits, 2):
+                self.QML.add(gates.CNOT(q, (q + 1) % (self.nqubits)))
+                self.QML.add(gates.RZ((q + 1) % (self.nqubits), theta = 0))
+                self.QML.add(gates.CNOT(q, (q + 1) % (self.nqubits)))
+
+
+    def mapper_QML(self, parameters, data):
+        assert len(parameters) == 2 * self.nlayers
+        
+
+        pqc_parameters = np.zeros(len(self.PQC.get_parameters()))
+        qml_parameters = np.zeros(len(self.QML.get_parameters()))
+
+
+        index_pqc = 0
+        index_qml = 0
+        for i, p in enumerate(parameters):
+            if i % 2 == 0:
+                qml_parameters[index_qml : index_qml + self.nqubits] = [data] * self.nqubits 
+                index_qml += self.nqubits
+
+            pqc_parameters[index_pqc : index_pqc + self.nqubits] = [p] * self.nqubits 
+            index_pqc += self.nqubits
+            qml_parameters[index_qml : index_qml + self.nqubits] = [p] * self.nqubits 
+            index_qml += self.nqubits
+        
+        self.PQC.set_parameters(pqc_parameters)
+        self.QML.set_parameters(qml_parameters)
+        return pqc_parameters, qml_parameters
+    
+    def energy(self, parameters):
+        self.mapper_QML(parameters, 0)
+
+        return self.ham.expectation(self.PQC.execute().state())

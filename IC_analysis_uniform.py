@@ -20,23 +20,26 @@ def main(nqubits, nlayers, model, seed):
     theta = np.loadtxt(nameX)
 
     y_uniform = np.loadtxt(nameUNI)
+
     data_size = y_uniform.shape[-1]
-
-    eps_uniform = np.empty(data_size)
-
+    
+    eps_uniform = np.zeros(data_size)
     for i in range(data_size):
-        diff_gauss = compute_steps(theta, y_uniform[:, i])
-        eps_uniform[i] = find_eps_max(diff_gauss)
+        diff_uniform = compute_steps(theta, y_uniform[:, i])
+        eps_uniform[i] = find_eps_max(diff_uniform)
 
+    eps_uniform_1 = find_eps_max(compute_steps(theta, np.mean(y_uniform, axis=1)))
+        
     nameEps = f'data_IC/q{nqubits}_l{nlayers}_model{model}_r{seed}.pkl'
     with open(nameEps, 'rb') as f:
-        epsilons = pickle.load(epsilons, f)
+        epsilons = pickle.load(f)
         
         
     epsilons['uniform']= eps_uniform
+    epsilons['uniform1']= eps_uniform_1
 
     with open(nameEps, 'wb') as f:
-            pickle.dump(epsilons, f)
+        pickle.dump(epsilons, f)
 
 if __name__ == '__main__':
     args = vars(parser.parse_args())

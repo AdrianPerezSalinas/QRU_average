@@ -22,18 +22,20 @@ def main(nqubits, nlayers, model, seed):
     y_gauss = np.loadtxt(nameGAUSS)
     data_size = y_gauss.shape[-1]
 
-    eps_gauss = np.empty(data_size)
-
+    eps_gauss = np.zeros(data_size)
     for i in range(data_size):
         diff_gauss = compute_steps(theta, y_gauss[:, i])
         eps_gauss[i] = find_eps_max(diff_gauss)
+        
+    eps_gauss_1 = find_eps_max(compute_steps(theta, np.mean(y_gauss, axis=1)))
 
     nameEps = f'data_IC/q{nqubits}_l{nlayers}_model{model}_r{seed}.pkl'
     with open(nameEps, 'rb') as f:
-        epsilons = pickle.load(epsilons, f)
+        epsilons = pickle.load(f)
         
         
     epsilons['gauss']= eps_gauss
+    epsilons['gauss1']= eps_gauss_1
 
     with open(nameEps, 'wb') as f:
             pickle.dump(epsilons, f)
