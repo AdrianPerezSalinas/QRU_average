@@ -15,6 +15,14 @@ parser.add_argument('--extra_dim', type=int, default=2)
 parser.add_argument('--data_size', type=int, default=5)
 
 def main(nqubits, nlayers, model, seed, extra_dim, data_size):
+    '''
+    nqubits: size of the circuits
+    nlayers: depth of the ansatz
+    model: choose the model, from the ones available in circuits_IC.py
+    seed: random seed for reproducibility
+    extra_dim: overhead in the number of dimensions for computing IC, see [48]
+    data_size: size of data x to compute hypothesis functions
+    '''
     nameGAUSS = f'data/q{nqubits}_l{nlayers}_gauss{model}_y_r{seed}.csv'
     try: 
         np.loadtxt(nameGAUSS)
@@ -35,6 +43,7 @@ def main(nqubits, nlayers, model, seed, extra_dim, data_size):
         elif model == 5:
             circuit = permutation_composed(nqubits, nlayers)
 
+        # Create circuits
         circuit.create_PQC()
         circuit.create_QML()
 
@@ -48,10 +57,10 @@ def main(nqubits, nlayers, model, seed, extra_dim, data_size):
             n_params = 2 * circuit.nlayers
 
         nameX = f'data/q{nqubits}_l{nlayers}_model{model}_X_r{seed}.csv'
-        theta = np.loadtxt(nameX)
+        theta = np.loadtxt(nameX)  # load parameters fro m PQC
 
-        y_gauss = sample_function(lambda x: circuit.function(x, np.sqrt(np.pi)* np.random.randn(data_size)), theta)
-        nameGAUSS = f'data/q{nqubits}_l{nlayers}_gauss{model}_y_r{seed}.csv'
+        y_gauss = sample_function(lambda x: circuit.function(x, np.sqrt(np.pi)* np.random.randn(data_size)), theta) # Execute functions
+        nameGAUSS = f'data/q{nqubits}_l{nlayers}_gauss{model}_y_r{seed}.csv' # Save data
         np.savetxt(nameGAUSS, y_gauss)
      
 

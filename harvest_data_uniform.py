@@ -14,6 +14,14 @@ parser.add_argument('--extra_dim', type=int, default=2)
 parser.add_argument('--data_size', type=int, default=5)
 
 def main(nqubits, nlayers, model, seed, extra_dim, data_size):
+    '''
+    nqubits: size of the circuits
+    nlayers: depth of the ansatz
+    model: choose the model, from the ones available in circuits_IC.py
+    seed: random seed for reproducibility
+    extra_dim: overhead in the number of dimensions for computing IC, see [48]
+    data_size: size of data x to compute hypothesis functions
+    '''
     nameUNI = f'data/q{nqubits}_l{nlayers}_uniform{model}_y_r{seed}.csv'
     try: 
         np.loadtxt(nameUNI)
@@ -34,6 +42,7 @@ def main(nqubits, nlayers, model, seed, extra_dim, data_size):
         elif model == 5:
             circuit = permutation_composed(nqubits, nlayers)
 
+        # Create circuits
         circuit.create_PQC()
         circuit.create_QML()
 
@@ -47,10 +56,10 @@ def main(nqubits, nlayers, model, seed, extra_dim, data_size):
             n_params = 2 * circuit.nlayers
 
         nameX = f'data/q{nqubits}_l{nlayers}_model{model}_X_r{seed}.csv'
-        theta = np.loadtxt(nameX)
+        theta = np.loadtxt(nameX) # load parameters fro m PQC
 
-        y_uniform = sample_function(lambda x: circuit.function(x, 2 * np.pi* (np.random.rand(data_size) - 0.5)), theta)
-        nameUNI = f'data/q{nqubits}_l{nlayers}_uniform{model}_y_r{seed}.csv'
+        y_uniform = sample_function(lambda x: circuit.function(x, 2 * np.pi* (np.random.rand(data_size) - 0.5)), theta) # Execute functions
+        nameUNI = f'data/q{nqubits}_l{nlayers}_uniform{model}_y_r{seed}.csv' # Save data
         np.savetxt(nameUNI, y_uniform)
     
     

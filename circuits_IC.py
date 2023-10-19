@@ -3,29 +3,54 @@ from qibo import gates
 import numpy as np
 from qibo.hamiltonians import TFIM
 
+'''
+File to construct circuits for PQCs and QRU models with different architectures. 
+The first class test_circuit is commented, and is the parent to all other classes, inheriting the role of each element as well.
+'''
+
 
 class test_circuit:
     def __init__(self, nqubits, nlayers) -> None:
-        self.nqubits = nqubits
-        self.nlayers = nlayers
-        self.ham = TFIM(nqubits, h=1)
+        '''
+        Initial class for circuits. Only placeholder functions. 
+        '''
+        self.nqubits = nqubits # Size of the circuit
+        self.nlayers = nlayers # Number of layers in the circuitasured the quantum circuit with
         
     def create_PQC(self):
+        '''
+        This function creates data-independent circuits, including architectures and parameters. 
+        The concrete circuits are specified in subsequent classes in this file
+        '''
         self.PQC = Circuit(self.nqubits)
 
     def create_QML(self):
+        '''
+        This function creates data-dependent circuits, including architectures and parameters. 
+        The concrete circuits are specified in subsequent classes in this file
+        '''
         self.QML = Circuit(self.nqubits)
 
     def mapper_QML(self, parameters, x):
+        '''circuit
+        Auxiliary function to map data x into parameters of the quantum circuit consistently. 
+        The data is passed to the gates repeated times
+        '''
         pass
 
     def energy(self, parameters):
+        '''
+        Computation of energy of the output of a PQC
+        '''
         self.PQC.set_parameters(parameters)
 
         return self.ham.expectation(self.PQC.execute().state())
     
 
     def function(self, parameters, x):
+        '''
+        Computation of the hypothesis function for 
+        '''
         hyp_fun = np.zeros(len(x))
         for i, data in enumerate(x):
             self.mapper_QML(parameters, data)

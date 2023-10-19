@@ -14,7 +14,18 @@ parser.add_argument('--seed', type=int, default=0)
 parser.add_argument('--extra_dim', type=int, default=2)
 parser.add_argument('--data_size', type=int, default=5)
 
+'''
+Function to harvest data for cost function of PQCs
+'''
+
 def main(nqubits, nlayers, model, seed, extra_dim, data_size):
+    '''
+    nqubits: size of the circuits
+    nlayers: depth of the ansatz
+    model: choose the model, from the ones available in circuits_IC.py
+    seed: random seed for reproducibility
+    extra_dim: overhead in the number of dimensions for computing IC, see [48]
+    '''
     if model == 1:
         circuit = single_qubit(nqubits, nlayers)
 
@@ -30,6 +41,8 @@ def main(nqubits, nlayers, model, seed, extra_dim, data_size):
     elif model == 5:
         circuit = permutation_composed(nqubits, nlayers)
 
+
+    # Create circuits
     circuit.create_PQC()
     circuit.create_QML()
 
@@ -42,10 +55,10 @@ def main(nqubits, nlayers, model, seed, extra_dim, data_size):
     elif model in [4, 5]:
         n_params = 2 * circuit.nlayers
 
-    theta = sample_parameters(n_params, n=extra_dim)
+    theta = sample_parameters(n_params, n=extra_dim) # Create parameters to sample
 
-    y_pqc = sample_function(circuit.energy, theta)
-    namePQC = f'data/q{nqubits}_l{nlayers}_PQC{model}_y_r{seed}.csv'
+    y_pqc = sample_function(circuit.energy, theta) # Execute functions
+    namePQC = f'data/q{nqubits}_l{nlayers}_PQC{model}_y_r{seed}.csv' # Save data
     np.savetxt(namePQC, y_pqc)
 
     nameX = f'data/q{nqubits}_l{nlayers}_model{model}_X_r{seed}.csv'
